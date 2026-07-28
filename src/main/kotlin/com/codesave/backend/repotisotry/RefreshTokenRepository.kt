@@ -19,7 +19,7 @@ interface RefreshTokenRepository : JpaRepository<RefreshToken, UUID> {
         WHERE (r.revoked = true AND r.expiresAt < :now)
            OR r.expiresAt < :daysAgo
     """)
-    fun deleteExpiredTokens(now: Instant, daysAgo: Instant): Void
+    fun deleteExpiredTokens(now: Instant, daysAgo: Instant): Int
 
     fun findByTokenHash(token: String): RefreshToken?
 }

@@ -3,6 +3,7 @@ package com.codesave.backend.repotisotry
 import com.codesave.backend.entity.Snippet
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
@@ -10,8 +11,14 @@ import java.util.Optional
 import java.util.UUID
 
 interface SnippetRepository : JpaRepository<Snippet, UUID> {
+
     fun findAllByUserEmail(email: String, pageable: Pageable): Page<Snippet>
+
+    @EntityGraph(attributePaths = ["tags"])
     fun findByIdAndUserEmail(id: UUID, userEmail: String): Optional<Snippet>
+
+    @EntityGraph(attributePaths = ["tags"])
+    override fun findById(id: UUID): Optional<Snippet>
 
     @Query("""
         SELECT DISTINCT s FROM Snippet s

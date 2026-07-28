@@ -1,6 +1,7 @@
 package com.codesave.backend.config
 
 import com.codesave.backend.security.JwtAuthenticationFilter
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
@@ -25,6 +26,9 @@ class WebSecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter
 ) {
 
+    @Value("\${app.address.frontend}")
+    val frontendAddress: String = ""
+
     @Bean
     fun passwordEncoder(): PasswordEncoder {
         return BCryptPasswordEncoder()
@@ -33,7 +37,7 @@ class WebSecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.allowedOrigins = listOf("*")
+        configuration.allowedOrigins = listOf(frontendAddress)
         configuration.allowedMethods = listOf("*")
         configuration.allowedHeaders = listOf("*")
 
@@ -46,6 +50,7 @@ class WebSecurityConfig(
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .csrf { it.disable() }
+            .cors {corsConfigurationSource()}
             .authorizeHttpRequests { authorize ->
                 authorize
                     .requestMatchers("/swagger-ui/**").permitAll()

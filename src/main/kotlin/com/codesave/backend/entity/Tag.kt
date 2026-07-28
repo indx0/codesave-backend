@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import org.hibernate.annotations.BatchSize
 import java.util.UUID
 
 @Entity
@@ -29,5 +30,6 @@ class Tag(
     var user: User,
 
     @ManyToMany(mappedBy = "tags", fetch = FetchType.LAZY)
+    @BatchSize(size = 50)
     var snippets: MutableList<Snippet> = mutableListOf()
 )

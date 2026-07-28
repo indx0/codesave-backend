@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.PrePersist
 import jakarta.persistence.Table
+import org.hibernate.annotations.BatchSize
 import java.time.Instant
 import java.util.UUID
 
@@ -51,6 +52,7 @@ class Snippet(
         joinColumns = [JoinColumn(name = "snippet_id")],
         inverseJoinColumns = [JoinColumn(name = "tag_id")]
     )
+    @BatchSize(size = 50)
     var tags: MutableList<Tag> = mutableListOf()
 ) {
     @PrePersist
