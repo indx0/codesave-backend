@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: codesave-backend-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: CHANGE-THE-PASSWORD-PLEASE
+      POSTGRES_DB: codesave
+    volumes:
+      - codesave-db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d codesave"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: ghcr.io/indx0/codesave-backend
+    container_name: codesave-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:8080:8080"
+
+volumes:
+  codesave-db-data:
+    name: codesave-db-data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/codesave/db
