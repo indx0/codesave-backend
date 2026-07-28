@@ -60,6 +60,7 @@ class WebSecurityConfig(
                     .requestMatchers("/api/user/register").permitAll()
                     .requestMatchers("/api/user/login").permitAll()
                     .requestMatchers("/api/user/refresh").permitAll()
+                    .requestMatchers("/api/snippet/public/**").permitAll()
                     .anyRequest().authenticated()
             }
             .exceptionHandling { exceptions ->
