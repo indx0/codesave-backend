@@ -48,7 +48,7 @@ Edit `/opt/codesave/backend/.env`:
 # Database
 DB_HOST=postgres                              # Postgres host
 DB_PORT=5432                                  # Postgres port
-DB_NAME=backend                               # Postgres database name
+DB_NAME=codesave                               # Postgres database name
 DB_USERNAME=app                               # Postgres user
 DB_PASSWORD=CHANGE-THE-PASSWORD-PLEASE        # Postgres password
 
