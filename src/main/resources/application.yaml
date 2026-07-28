@@ -27,5 +27,5 @@ app:
   jwt:
     secret: ${JWT_SECRET:NDAZLn6kds04iKqSUIrNThqxlxbVcfe7NtXNYmYY/5E=}
     issuer: ${JWT_ISSUER:http://localhost:8080}
-    access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:604800000}
+    access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:3600000}
     refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:2592000000}
