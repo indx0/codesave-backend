@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: codesave-back
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5430}/${DB_NAME:backend}
+    username: ${DB_USERNAME:app}
+    password: ${DB_PASSWORD:test123}
+    driver-class-name: org.postgresql.Driver
+
+  liquibase:
+    enabled: true
+    changelog: classpath:db/changelog/db.changelog-master.xml
+
+  jpa:
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+
+server:
+  forward-headers-strategy: framework
+
+app:
+  address:
+    frontend: ${BACKEND_ADDRESS:http://localhost:5173}
+  jwt:
+    secret: ${JWT_SECRET:NDAZLn6kds04iKqSUIrNThqxlxbVcfe7NtXNYmYY/5E=}
+    issuer: ${JWT_ISSUER:http://localhost:8080}
+    access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:604800000}
+    refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:2592000000}

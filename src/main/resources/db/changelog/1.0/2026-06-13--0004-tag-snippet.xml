@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="2026-06-13--0004-tag-snippet" author="indx0">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="tag_snippet"/>
+            </not>
+        </preConditions>
+        <createTable tableName="tag_snippet">
+            <column name="snippet_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_snippet_tagsnippet" referencedTableName="snippet"
+                             referencedColumnNames="id"
+                             deleteCascade="true"/>
+            </column>
+
+            <column name="tag_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_tag_tagsnippet" referencedTableName="tag"
+                             referencedColumnNames="id"
+                             deleteCascade="true"/>
+            </column>
+        </createTable>
+        <createIndex tableName="tag_snippet" indexName="idx_tag_snippet_snippet_id">
+            <column name="snippet_id"/>
+        </createIndex>
+        <createIndex tableName="tag_snippet" indexName="idx_tag_snippet_tag_id">
+            <column name="tag_id"/>
+        </createIndex>
+        <createIndex tableName="tag_snippet" indexName="idx_tag_snippet_unique" unique="true">
+            <column name="snippet_id"/>
+            <column name="tag_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
