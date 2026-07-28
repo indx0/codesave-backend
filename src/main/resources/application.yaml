@@ -2,6 +2,7 @@ spring:
   application:
     name: codesave-back
 
+
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5430}/${DB_NAME:backend}
     username: ${DB_USERNAME:app}
@@ -20,6 +21,7 @@ spring:
 
 server:
   forward-headers-strategy: framework
+  address: ${LISTEN_ADDRESS:0.0.0.0}
 
 app:
   address:
