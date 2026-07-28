@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:18
-    container_name: backend-postgres
+    container_name: codesave-backend-postgres
     restart: always
     environment:
       POSTGRES_USER: app
