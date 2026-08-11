@@ -40,8 +40,8 @@ class JwtTokenProvider(private val jwtProperties: JwtProperties) {
         return getClaims(token)["email"] as String
     }
 
-    fun getUserIdFromToken(token: String): UUID {
-        return UUID.fromString(getClaims(token).subject)
+    fun getUserIdFromToken(token: String): String {
+        return getClaims(token).subject
     }
 
     fun validateToken(token: String): Boolean {
