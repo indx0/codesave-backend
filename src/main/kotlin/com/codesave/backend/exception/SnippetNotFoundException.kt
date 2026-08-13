@@ -1,3 +1,5 @@
 package com.codesave.backend.exception
 
-class SnippetNotFoundException(message: String) : RuntimeException(message)
+class SnippetNotFoundException(
+    message: String,
+) : RuntimeException(message)

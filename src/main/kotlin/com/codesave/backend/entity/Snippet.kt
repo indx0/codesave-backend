@@ -1,5 +1,6 @@
 package com.codesave.backend.entity
 
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
@@ -10,12 +11,12 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
 import jakarta.persistence.PrePersist
 import jakarta.persistence.Table
 import org.hibernate.annotations.BatchSize
 import java.time.Instant
 import java.util.UUID
-
 
 @Entity
 @Table(name = "snippet")
@@ -29,12 +30,6 @@ class Snippet(
 
     @Column(nullable = false, columnDefinition = "text")
     var description: String,
-
-    @Column(nullable = false, length = 256)
-    var language: String,
-
-    @Column(nullable = false, columnDefinition = "text")
-    var code: String,
 
     @Column(name = "created_at", nullable = false, updatable = false)
     var createdAt: Instant? = null,
@@ -50,10 +45,14 @@ class Snippet(
     @JoinTable(
         name = "tag_snippet",
         joinColumns = [JoinColumn(name = "snippet_id")],
-        inverseJoinColumns = [JoinColumn(name = "tag_id")]
+        inverseJoinColumns = [JoinColumn(name = "tag_id")],
     )
     @BatchSize(size = 50)
-    var tags: MutableList<Tag> = mutableListOf()
+    var tags: MutableSet<Tag> = mutableSetOf(),
+
+    @OneToMany(mappedBy = "snippet", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
+    @BatchSize(size = 50)
+    var files: MutableList<SnippetFile> = mutableListOf(),
 ) {
     @PrePersist
     fun onCreate() {

@@ -1,7 +1,6 @@
 package com.codesave.backend.config
 
 import com.codesave.backend.security.JwtAuthenticationFilter
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
@@ -10,7 +9,6 @@ import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
-import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
@@ -22,22 +20,15 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebSecurity
 class WebSecurityConfig(
-    private val userDetailsService: UserDetailsService,
-    private val jwtAuthenticationFilter: JwtAuthenticationFilter
+    private val jwtAuthenticationFilter: JwtAuthenticationFilter,
 ) {
-
-    @Value("\${app.address.frontend}")
-    val frontendAddress: String = ""
-
     @Bean
-    fun passwordEncoder(): PasswordEncoder {
-        return BCryptPasswordEncoder()
-    }
+    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.allowedOrigins = listOf(frontendAddress)
+        configuration.allowedOrigins = listOf("*")
         configuration.allowedMethods = listOf("*")
         configuration.allowedHeaders = listOf("*")
 
@@ -50,41 +41,42 @@ class WebSecurityConfig(
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .csrf { it.disable() }
-            .cors {corsConfigurationSource()}
+            .cors { it.disable() }
             .authorizeHttpRequests { authorize ->
                 authorize
-                    .requestMatchers("/swagger-ui/**").permitAll()
-                    .requestMatchers("/swagger-ui.html").permitAll()
-                    .requestMatchers("/v3/api-docs/**").permitAll()
-
-                    .requestMatchers("/api/user/register").permitAll()
-                    .requestMatchers("/api/user/login").permitAll()
-                    .requestMatchers("/api/user/refresh").permitAll()
-                    .requestMatchers("/api/snippet/public/**").permitAll()
-                    .anyRequest().authenticated()
-            }
-            .exceptionHandling { exceptions ->
+                    .requestMatchers("/swagger-ui/**")
+                    .permitAll()
+                    .requestMatchers("/swagger-ui.html")
+                    .permitAll()
+                    .requestMatchers("/v3/api-docs/**")
+                    .permitAll()
+                    .requestMatchers("/api/v1/user/register")
+                    .permitAll()
+                    .requestMatchers("/api/v1/user/login")
+                    .permitAll()
+                    .requestMatchers("/api/v1/user/refresh")
+                    .permitAll()
+                    .requestMatchers("/api/v1/snippet/public/**")
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated()
+            }.exceptionHandling { exceptions ->
                 exceptions
                     .authenticationEntryPoint { _, response, _ ->
                         response.status = HttpStatus.UNAUTHORIZED.value()
                         response.contentType = MediaType.APPLICATION_JSON_VALUE
                         response.writer.write("""{"error":"Unauthorized","message":"Authentication required"}""")
-                    }
-                    .accessDeniedHandler { _, response, _ ->
+                    }.accessDeniedHandler { _, response, _ ->
                         response.status = HttpStatus.FORBIDDEN.value()
                         response.contentType = MediaType.APPLICATION_JSON_VALUE
                         response.writer.write("""{"error":"Forbidden","message":"Access denied"}""")
                     }
-            }
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+            }.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
     }
 
     @Bean
-    fun authenticationManager(
-        authenticationConfiguration: AuthenticationConfiguration
-    ): AuthenticationManager {
-        return authenticationConfiguration.authenticationManager
-    }
+    fun authenticationManager(authenticationConfiguration: AuthenticationConfiguration): AuthenticationManager =
+        authenticationConfiguration.authenticationManager
 }

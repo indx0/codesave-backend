@@ -6,26 +6,29 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.stereotype.Service
 import java.util.Date
-import java.util.UUID
 import javax.crypto.SecretKey
 import kotlin.io.encoding.Base64
 
 @Service
-class JwtTokenProvider(private val jwtProperties: JwtProperties) {
+class JwtTokenProvider(
+    private val jwtProperties: JwtProperties,
+) {
     private val secretKey: SecretKey = Keys.hmacShaKeyFor(Base64.decode(jwtProperties.secret))
 
-    private fun getClaims(token: String): Claims {
-        return Jwts.parser()
+    private fun getClaims(token: String): Claims =
+        Jwts
+            .parser()
             .verifyWith(secretKey)
             .build()
-            .parseSignedClaims(token).payload
-    }
+            .parseSignedClaims(token)
+            .payload
 
     fun generateAccessToken(user: User): String {
         val now = Date()
         val expiry = Date(now.time + jwtProperties.accessTokenExpiration)
 
-        return Jwts.builder()
+        return Jwts
+            .builder()
             .subject(user.id.toString())
             .issuer(jwtProperties.issuer)
             .claim("email", user.email)
@@ -36,20 +39,15 @@ class JwtTokenProvider(private val jwtProperties: JwtProperties) {
             .compact()
     }
 
-    fun getEmailFromToken(token: String): String {
-        return getClaims(token)["email"] as String
-    }
+    fun getEmailFromToken(token: String): String = getClaims(token)["email"] as String
 
-    fun getUserIdFromToken(token: String): String {
-        return getClaims(token).subject
-    }
+    fun getUserIdFromToken(token: String): String = getClaims(token).subject
 
-    fun validateToken(token: String): Boolean {
-        return try {
+    fun validateToken(token: String): Boolean =
+        try {
             getClaims(token)
             true
         } catch (e: Exception) {
             false
         }
-    }
 }

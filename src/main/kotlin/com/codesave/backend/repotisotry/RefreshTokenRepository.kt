@@ -11,15 +11,19 @@ import java.util.UUID
 
 @Repository
 interface RefreshTokenRepository : JpaRepository<RefreshToken, UUID> {
-
     @Modifying
     @Transactional
-    @Query("""
+    @Query(
+        """
         DELETE FROM RefreshToken r
         WHERE (r.revoked = true AND r.expiresAt < :now)
            OR r.expiresAt < :daysAgo
-    """)
-    fun deleteExpiredTokens(now: Instant, daysAgo: Instant): Int
+    """,
+    )
+    fun deleteExpiredTokens(
+        now: Instant,
+        daysAgo: Instant,
+    ): Int
 
     fun findByTokenHash(token: String): RefreshToken?
 }

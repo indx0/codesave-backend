@@ -11,25 +11,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
-
     @ExceptionHandler(UserExistsException::class)
-    fun handleUserExistsException(e: UserExistsException): ResponseEntity<String> {
-        return ResponseEntity(e.message, HttpStatus.CONFLICT)
-    }
+    fun handleUserExistsException(e: UserExistsException): ResponseEntity<String> = ResponseEntity(e.message, HttpStatus.CONFLICT)
 
     @ExceptionHandler(TagNotFoundException::class)
-    fun handleTagNotFoundException(e: TagNotFoundException): ResponseEntity<String> {
-        return ResponseEntity(e.message, HttpStatus.NOT_FOUND)
-    }
+    fun handleTagNotFoundException(e: TagNotFoundException): ResponseEntity<String> = ResponseEntity(e.message, HttpStatus.NOT_FOUND)
 
     @ExceptionHandler(SnippetNotFoundException::class)
-    fun handleSnippetNotFoundException(e: SnippetNotFoundException): ResponseEntity<String> {
-        return ResponseEntity(e.message, HttpStatus.NOT_FOUND)
-    }
+    fun handleSnippetNotFoundException(e: SnippetNotFoundException): ResponseEntity<String> =
+        ResponseEntity(e.message, HttpStatus.NOT_FOUND)
 
     @ExceptionHandler(InvalidRefreshTokenException::class)
-    fun handleInvalidRefreshTokenException(e: InvalidRefreshTokenException): ResponseEntity<String> {
-        return ResponseEntity(e.message, HttpStatus.UNAUTHORIZED)
-    }
-
+    fun handleInvalidRefreshTokenException(e: InvalidRefreshTokenException): ResponseEntity<String> =
+        ResponseEntity(e.message, HttpStatus.UNAUTHORIZED)
 }

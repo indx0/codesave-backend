@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service
 import java.util.UUID
 
 @Service
-class UserDetailsServiceImpl(private final val userRepository: UserRepository) : UserDetailsService {
+class UserDetailsServiceImpl(
+    private final val userRepository: UserRepository,
+) : UserDetailsService {
     override fun loadUserByUsername(id: String): UserDetails {
         val user = userRepository.findById(UUID.fromString(id))
         if (user.isEmpty) {

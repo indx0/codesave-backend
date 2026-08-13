@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- Step 1: copy each existing snippet's code/language into a single
+         "main" file row in snippet_file. Safe to re-run: skipped once
+         snippet.code no longer exists (see step 2). -->
+    <changeSet id="2026-08-12--0007-migrate-snippet-code-data" author="indx0">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="snippet" columnName="code"/>
+        </preConditions>
+        <sql>
+            INSERT INTO snippet_file (id, snippet_id, filename, code)
+            SELECT gen_random_uuid(), s.id, 'main', s.code
+            FROM snippet s;
+        </sql>
+        <rollback>
+            DELETE FROM snippet_file WHERE filename = 'main' AND position = 0;
+        </rollback>
+    </changeSet>
+
+    <!-- Step 2: drop the now-redundant columns from snippet. Split into its
+         own changeSet so step 1 can be deployed/verified before this runs. -->
+    <changeSet id="2026-08-12--0007-drop-snippet-code-columns" author="indx0">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="snippet" columnName="code"/>
+        </preConditions>
+        <dropColumn tableName="snippet" columnName="code"/>
+        <dropColumn tableName="snippet" columnName="language"/>
+        <rollback>
+            <addColumn tableName="snippet">
+                <column name="code" type="text">
+                    <constraints nullable="true"/>
+                </column>
+                <column name="language" type="VARCHAR(256)">
+                    <constraints nullable="true"/>
+                </column>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

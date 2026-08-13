@@ -10,12 +10,20 @@ import java.util.Optional
 import java.util.UUID
 
 @Repository
-interface TagRepository: JpaRepository<Tag, UUID> {
-
+interface TagRepository : JpaRepository<Tag, UUID> {
     @EntityGraph(attributePaths = ["snippets"])
-    fun findByIdAndUserEmail(id: UUID, userEmail: String): Optional<Tag>
+    fun findByIdAndUserEmail(
+        id: UUID,
+        userEmail: String,
+    ): Optional<Tag>
 
-    fun findAllByUserEmail(userEmail: String, pageable: Pageable): Page<Tag>
+    fun findAllByUserEmail(
+        userEmail: String,
+        pageable: Pageable,
+    ): Page<Tag>
 
-    fun findByIdInAndUserEmail(ids: List<UUID>, userEmail: String): List<Tag>
+    fun findByIdInAndUserEmail(
+        ids: List<UUID>,
+        userEmail: String,
+    ): List<Tag>
 }

@@ -28,7 +28,6 @@ import java.util.UUID
 
 @ExtendWith(MockitoExtension::class)
 class TagServiceTest {
-
     @Mock
     private lateinit var tagRepository: TagRepository
 
@@ -138,8 +137,9 @@ class TagServiceTest {
     @Test
     fun `getTagById returns tag when found`() {
         val tagId = UUID.randomUUID()
-        val tag = Tag(name = "found", user = User(email = "user@example.com"))
-            .also { it.id = tagId }
+        val tag =
+            Tag(name = "found", user = User(email = "user@example.com"))
+                .also { it.id = tagId }
 
         whenever(tagRepository.findByIdAndUserEmail(tagId, "user@example.com"))
             .thenReturn(Optional.of(tag))
@@ -167,16 +167,24 @@ class TagServiceTest {
     fun `getAllSnippetsByTagId returns snippets when tag found`() {
         val tagId = UUID.randomUUID()
         val user = User(email = "user@example.com")
-        val snippets = listOf(
-            Snippet(name = "s1", description = "", language = "", code = "", isPublic = false, user = user)
-                .also { it.id = UUID.randomUUID(); it.createdAt = Instant.now() },
-            Snippet(name = "s2", description = "", language = "", code = "", isPublic = false, user = user)
-                .also { it.id = UUID.randomUUID(); it.createdAt = Instant.now() }
-        )
-        val tag = Tag(name = "tag", user = user).also {
-            it.id = tagId
-            it.snippets = snippets.toMutableList()
-        }
+        val snippets =
+            listOf(
+                Snippet(name = "s1", description = "", isPublic = false, user = user)
+                    .also {
+                        it.id = UUID.randomUUID()
+                        it.createdAt = Instant.now()
+                    },
+                Snippet(name = "s2", description = "", isPublic = false, user = user)
+                    .also {
+                        it.id = UUID.randomUUID()
+                        it.createdAt = Instant.now()
+                    },
+            )
+        val tag =
+            Tag(name = "tag", user = user).also {
+                it.id = tagId
+                it.snippets = snippets.toMutableList()
+            }
 
         whenever(tagRepository.findByIdAndUserEmail(tagId, "user@example.com"))
             .thenReturn(Optional.of(tag))

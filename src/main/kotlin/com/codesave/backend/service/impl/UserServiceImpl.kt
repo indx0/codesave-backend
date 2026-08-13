@@ -1,6 +1,11 @@
 package com.codesave.backend.service.impl
 
-import com.codesave.backend.dto.user.*
+import com.codesave.backend.dto.user.LoginRequest
+import com.codesave.backend.dto.user.LogoutRequest
+import com.codesave.backend.dto.user.RefreshRequest
+import com.codesave.backend.dto.user.TokenResponse
+import com.codesave.backend.dto.user.UserRegisterRequest
+import com.codesave.backend.dto.user.UserResponse
 import com.codesave.backend.entity.RefreshToken
 import com.codesave.backend.entity.User
 import com.codesave.backend.exception.UserExistsException
@@ -24,84 +29,91 @@ class UserServiceImpl(
     private val refreshTokenRepository: RefreshTokenRepository,
     private val refreshTokenProvider: RefreshTokenProvider,
     private val jwtTokenProvider: JwtTokenProvider,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
 ) : UserService {
-
     override fun register(dto: UserRegisterRequest): UserResponse {
         if (userRepository.existsByEmail(dto.email!!)) {
             throw UserExistsException("User already exists")
         }
-        val user = User(
-            email = dto.email,
-            name = dto.name!!,
-            passwordHash = passwordEncoder.encode(dto.password)
-        )
+        val user =
+            User(
+                email = dto.email,
+                name = dto.name!!,
+                passwordHash = passwordEncoder.encode(dto.password),
+            )
         userRepository.save(user)
         return user.toResponse()
     }
 
     override fun login(dto: LoginRequest): TokenResponse {
-        val user = userRepository.findByEmail(dto.email!!)
-            ?: throw SecurityException("Invalid email or password")
+        val user =
+            userRepository.findByEmail(dto.email!!)
+                ?: throw SecurityException("Invalid email or password")
         if (!passwordEncoder.matches(dto.password, user.passwordHash)) {
             throw SecurityException("Invalid email or password")
         }
 
         val rawRefreshToken = refreshTokenProvider.generateRefreshToken()
-        val refreshToken = RefreshToken(
-            tokenHash = refreshTokenProvider.hashToken(rawRefreshToken),
-            user = user,
-            expiresAt = Instant.now().plus(14, ChronoUnit.DAYS),
-            createdAt = Instant.now(),
-            revoked = false
-        )
+        val refreshToken =
+            RefreshToken(
+                tokenHash = refreshTokenProvider.hashToken(rawRefreshToken),
+                user = user,
+                expiresAt = Instant.now().plus(14, ChronoUnit.DAYS),
+                createdAt = Instant.now(),
+                revoked = false,
+            )
         refreshTokenRepository.save(refreshToken)
 
         return TokenResponse(
             accessToken = jwtTokenProvider.generateAccessToken(user),
-            refreshToken = rawRefreshToken
+            refreshToken = rawRefreshToken,
         )
     }
 
     override fun getUserByEmail(email: String): UserResponse {
-        val user = userRepository.findByEmail(email)
-            ?: throw UsernameNotFoundException("User not found")
+        val user =
+            userRepository.findByEmail(email)
+                ?: throw UsernameNotFoundException("User not found")
         return user.toResponse()
     }
 
     override fun refresh(dto: RefreshRequest): TokenResponse {
         val hashedToken = refreshTokenProvider.hashToken(dto.refreshToken!!)
-        val tokenEntity = refreshTokenRepository.findByTokenHash(hashedToken) ?:
-             throw InvalidRefreshTokenException("Invalid refresh token")
+        val tokenEntity =
+            refreshTokenRepository.findByTokenHash(hashedToken)
+                ?: throw InvalidRefreshTokenException("Invalid refresh token")
 
         if (tokenEntity.revoked) throw InvalidRefreshTokenException("Refresh token reuse detected")
-        if (tokenEntity.expiresAt.isBefore(Instant.now()))
+        if (tokenEntity.expiresAt.isBefore(Instant.now())) {
             throw InvalidRefreshTokenException("Refresh token expired")
+        }
 
         tokenEntity.revoked = true
         tokenEntity.revokedAt = Instant.now()
         val user = tokenEntity.user
 
         val newRawToken = refreshTokenProvider.generateRefreshToken()
-        val newToken = RefreshToken(
-            tokenHash = refreshTokenProvider.hashToken(newRawToken),
-            user = user,
-            expiresAt = Instant.now().plus(14, ChronoUnit.DAYS),
-            createdAt = Instant.now(),
-            revoked = false
-        )
+        val newToken =
+            RefreshToken(
+                tokenHash = refreshTokenProvider.hashToken(newRawToken),
+                user = user,
+                expiresAt = Instant.now().plus(14, ChronoUnit.DAYS),
+                createdAt = Instant.now(),
+                revoked = false,
+            )
         refreshTokenRepository.save(newToken)
 
         return TokenResponse(
             accessToken = jwtTokenProvider.generateAccessToken(user),
-            refreshToken = newRawToken
+            refreshToken = newRawToken,
         )
     }
 
     override fun logout(dto: LogoutRequest) {
         val hashedToken = refreshTokenProvider.hashToken(dto.refreshToken!!)
-        val tokenEntity = refreshTokenRepository.findByTokenHash(hashedToken)
-            ?: throw InvalidRefreshTokenException("Invalid refresh token")
+        val tokenEntity =
+            refreshTokenRepository.findByTokenHash(hashedToken)
+                ?: throw InvalidRefreshTokenException("Invalid refresh token")
 
         if (tokenEntity.revoked) {
             throw InvalidRefreshTokenException("Refresh token reuse detected")
@@ -113,10 +125,10 @@ class UserServiceImpl(
         refreshTokenRepository.delete(tokenEntity)
     }
 
-    private fun User.toResponse() = UserResponse(
-        id = id!!,
-        name = name,
-        email = email
-    )
-
+    private fun User.toResponse() =
+        UserResponse(
+            id = id!!,
+            name = name,
+            email = email,
+        )
 }

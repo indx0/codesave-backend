@@ -24,8 +24,6 @@ server:
   address: ${LISTEN_ADDRESS:0.0.0.0}
 
 app:
-  address:
-    frontend: ${FRONTEND_ADDRESS:http://localhost:5173}
   jwt:
     secret: ${JWT_SECRET:NDAZLn6kds04iKqSUIrNThqxlxbVcfe7NtXNYmYY/5E=}
     issuer: ${JWT_ISSUER:http://localhost:8080}

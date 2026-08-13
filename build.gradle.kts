@@ -4,10 +4,11 @@ plugins {
     id("org.springframework.boot") version "4.0.7"
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("plugin.jpa") version "2.2.21"
+    id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
 }
 
 group = "com.codesave"
-version = "0.0.1-SNAPSHOT"
+version = "0.0.1"
 description = "codesave-back"
 
 java {

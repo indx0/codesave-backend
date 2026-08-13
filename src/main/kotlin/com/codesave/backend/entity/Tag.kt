@@ -15,7 +15,7 @@ import java.util.UUID
 
 @Entity
 @Table(
-    name = "tag"
+    name = "tag",
 )
 class Tag(
     @Id
@@ -31,5 +31,5 @@ class Tag(
 
     @ManyToMany(mappedBy = "tags", fetch = FetchType.LAZY)
     @BatchSize(size = 50)
-    var snippets: MutableList<Snippet> = mutableListOf()
+    var snippets: MutableList<Snippet> = mutableListOf(),
 )

@@ -1,5 +1,6 @@
 package com.codesave.backend.service
 
+import com.codesave.backend.dto.file.FileCreateNestedRequest
 import com.codesave.backend.dto.snippet.SnippetCreateRequest
 import com.codesave.backend.entity.Snippet
 import com.codesave.backend.entity.Tag
@@ -29,7 +30,6 @@ import java.util.UUID
 
 @ExtendWith(MockitoExtension::class)
 class SnippetServiceTest {
-
     @Mock
     private lateinit var snippetRepository: SnippetRepository
 
@@ -51,10 +51,16 @@ class SnippetServiceTest {
     @Test
     fun `getAllSnippets delegates to repository`() {
         val user = User(email = "user@example.com")
-        val snippet = Snippet(
-            name = "test", description = "desc", language = "kotlin",
-            code = "code", isPublic = false, user = user
-        ).also { it.id = UUID.randomUUID(); it.createdAt = Instant.now() }
+        val snippet =
+            Snippet(
+                name = "test",
+                description = "desc",
+                isPublic = false,
+                user = user,
+            ).also {
+                it.id = UUID.randomUUID()
+                it.createdAt = Instant.now()
+            }
         val pageable = Pageable.ofSize(10)
         val page: Page<Snippet> = PageImpl(listOf(snippet))
         whenever(snippetRepository.findAllByUserEmail("user@example.com", pageable)).thenReturn(page)
@@ -69,15 +75,14 @@ class SnippetServiceTest {
     // ---------- createSnippet ----------
 
     @Test
-    fun `createSnippet persists snippet without tags`() {
-        val dto = SnippetCreateRequest(
-            name = "my snippet",
-            description = "desc",
-            language = "java",
-            code = "System.out.println(1);",
-            isPublic = false,
-            tagIds = null
-        )
+    fun `createSnippet persists snippet without tags or files`() {
+        val dto =
+            SnippetCreateRequest(
+                name = "my snippet",
+                description = "desc",
+                isPublic = false,
+                tagIds = null,
+            )
         val user = User(email = "user@example.com")
 
         whenever(userRepository.findByEmail("user@example.com")).thenReturn(user)
@@ -95,9 +100,8 @@ class SnippetServiceTest {
         val persisted = captor.firstValue
         assert(persisted.name == "my snippet")
         assert(persisted.description == "desc")
-        assert(persisted.language == "java")
         assert(persisted.isPublic == false)
-        assert(persisted.code == "System.out.println(1);")
+        assert(persisted.files.isEmpty())
         assert(persisted.user == user)
         assert(persisted.createdAt != null)
         assert(result.name == "my snippet")
@@ -108,11 +112,13 @@ class SnippetServiceTest {
     fun `createSnippet attaches tags when tagIds provided`() {
         val tagId1 = UUID.randomUUID()
         val tagId2 = UUID.randomUUID()
-        val dto = SnippetCreateRequest(
-            name = "tagged snippet", description = "desc", language = "java",
-            code = "code", isPublic = false,
-            tagIds = listOf(tagId1, tagId2)
-        )
+        val dto =
+            SnippetCreateRequest(
+                name = "tagged snippet",
+                description = "desc",
+                isPublic = false,
+                tagIds = listOf(tagId1, tagId2),
+            )
         val user = User(email = "user@example.com")
         val tags = listOf(Tag(name = "a", user = User()), Tag(name = "b", user = User()))
 
@@ -121,7 +127,9 @@ class SnippetServiceTest {
             .thenReturn(tags)
         whenever(snippetRepository.save(any<Snippet>())).thenAnswer { inv ->
             val s = inv.getArgument<Snippet>(0)
-            s.id = UUID.randomUUID(); s.createdAt = Instant.now(); s
+            s.id = UUID.randomUUID()
+            s.createdAt = Instant.now()
+            s
         }
 
         snippetService.createSnippet(dto, "user@example.com")
@@ -129,6 +137,43 @@ class SnippetServiceTest {
         val captor = argumentCaptor<Snippet>()
         verify(snippetRepository).save(captor.capture())
         assert(captor.firstValue.tags == tags)
+    }
+
+    @Test
+    fun `createSnippet persists snippet with files`() {
+        val dto =
+            SnippetCreateRequest(
+                name = "multi-file snippet",
+                description = "desc",
+                isPublic = true,
+                files =
+                    listOf(
+                        FileCreateNestedRequest().apply { filename = "Main.kt"; code = "fun main() {}" },
+                        FileCreateNestedRequest().apply { filename = "Utils.kt"; code = "fun util() {}" },
+                    ),
+            )
+        val user = User(email = "user@example.com")
+
+        whenever(userRepository.findByEmail("user@example.com")).thenReturn(user)
+        whenever(snippetRepository.save(any<Snippet>())).thenAnswer { inv ->
+            val s = inv.getArgument<Snippet>(0)
+            s.id = UUID.randomUUID()
+            s.createdAt = Instant.now()
+            s.files.forEach { it.id = UUID.randomUUID() }
+            s
+        }
+
+        val result = snippetService.createSnippet(dto, "user@example.com")
+
+        val captor = argumentCaptor<Snippet>()
+        verify(snippetRepository).save(captor.capture())
+        val persisted = captor.firstValue
+        assert(persisted.files.size == 2)
+        assert(persisted.files[0].filename == "Main.kt")
+        assert(persisted.files[0].code == "fun main() {}")
+        assert(persisted.files[1].filename == "Utils.kt")
+        assert(persisted.files[1].code == "fun util() {}")
+        assert(result.files!!.size == 2)
     }
 
     @Test
@@ -148,11 +193,16 @@ class SnippetServiceTest {
     @Test
     fun `updateSnippet updates only provided fields`() {
         val snippetId = UUID.randomUUID()
-        val existing = Snippet(
-            name = "old name", description = "old description",
-            code = "old code", language = "python", isPublic = false,
-            user = User(email = "user@example.com")
-        ).also { it.id = snippetId; it.createdAt = Instant.now() }
+        val existing =
+            Snippet(
+                name = "old name",
+                description = "old description",
+                isPublic = false,
+                user = User(email = "user@example.com"),
+            ).also {
+                it.id = snippetId
+                it.createdAt = Instant.now()
+            }
 
         val dto = SnippetCreateRequest(name = "new name")
 
@@ -163,8 +213,6 @@ class SnippetServiceTest {
 
         assert(existing.name == "new name")
         assert(existing.description == "old description")
-        assert(existing.code == "old code")
-        assert(existing.language == "python")
         assert(existing.isPublic == false)
         verify(tagRepository, never()).findByIdInAndUserEmail(any(), any())
     }
@@ -173,10 +221,16 @@ class SnippetServiceTest {
     fun `updateSnippet updates tags when tagIds provided and valid`() {
         val snippetId = UUID.randomUUID()
         val tagId = UUID.randomUUID()
-        val existing = Snippet(
-            name = "", description = "", language = "", code = "", isPublic = false,
-            user = User(email = "user@example.com")
-        ).also { it.id = snippetId; it.createdAt = Instant.now() }
+        val existing =
+            Snippet(
+                name = "",
+                description = "",
+                isPublic = false,
+                user = User(email = "user@example.com"),
+            ).also {
+                it.id = snippetId
+                it.createdAt = Instant.now()
+            }
         val dto = SnippetCreateRequest(tagIds = listOf(tagId))
         val tags = listOf(Tag(name = "a", user = User()))
 
@@ -191,14 +245,77 @@ class SnippetServiceTest {
     }
 
     @Test
+    fun `updateSnippet replaces files when provided`() {
+        val snippetId = UUID.randomUUID()
+        val existing =
+            Snippet(
+                name = "snippet",
+                description = "desc",
+                isPublic = false,
+                user = User(email = "user@example.com"),
+            ).also {
+                it.id = snippetId
+                it.createdAt = Instant.now()
+            }
+
+        val dto =
+            SnippetCreateRequest(
+                files =
+                    listOf(
+                        FileCreateNestedRequest().apply { filename = "new.py"; code = "print('hi')" },
+                    ),
+            )
+
+        whenever(snippetRepository.findByIdAndUserEmail(snippetId, "user@example.com"))
+            .thenReturn(Optional.of(existing))
+
+        snippetService.updateSnippet(dto, "user@example.com", snippetId)
+
+        assert(existing.files.size == 1)
+        assert(existing.files[0].filename == "new.py")
+        assert(existing.files[0].code == "print('hi')")
+        assert(existing.files[0].snippet == existing)
+    }
+
+    @Test
+    fun `updateSnippet does not change files when files is null`() {
+        val snippetId = UUID.randomUUID()
+        val existing =
+            Snippet(
+                name = "snippet",
+                description = "desc",
+                isPublic = false,
+                user = User(email = "user@example.com"),
+            ).also {
+                it.id = snippetId
+                it.createdAt = Instant.now()
+            }
+
+        val dto = SnippetCreateRequest(name = "updated name")
+
+        whenever(snippetRepository.findByIdAndUserEmail(snippetId, "user@example.com"))
+            .thenReturn(Optional.of(existing))
+
+        snippetService.updateSnippet(dto, "user@example.com", snippetId)
+
+        assert(existing.files.isEmpty())
+    }
+
+    @Test
     fun `updateSnippet throws when tagId count mismatch`() {
         val snippetId = UUID.randomUUID()
         val tagId1 = UUID.randomUUID()
         val tagId2 = UUID.randomUUID()
-        val existing = Snippet(
-            name = "", description = "", language = "", code = "", isPublic = false,
-            user = User(email = "user@example.com")
-        ).also { it.id = snippetId; it.createdAt = Instant.now() }
+        val existing =
+            Snippet(
+                name = "",
+                description = "",
+                isPublic = false,
+                user = User(email = "user@example.com"),
+            ).also {
+                it.id = snippetId
+                it.createdAt = Instant.now()
+            }
         val dto = SnippetCreateRequest(tagIds = listOf(tagId1, tagId2))
         val onlyOneTag = listOf(Tag(name = "a", user = User()))
 
@@ -230,10 +347,13 @@ class SnippetServiceTest {
     @Test
     fun `deleteSnippet deletes when found`() {
         val snippetId = UUID.randomUUID()
-        val snippet = Snippet(
-            name = "", description = "", language = "", code = "", isPublic = false,
-            user = User(email = "user@example.com")
-        ).also { it.id = snippetId }
+        val snippet =
+            Snippet(
+                name = "",
+                description = "",
+                isPublic = false,
+                user = User(email = "user@example.com"),
+            ).also { it.id = snippetId }
 
         whenever(snippetRepository.findByIdAndUserEmail(snippetId, "user@example.com"))
             .thenReturn(Optional.of(snippet))
@@ -261,10 +381,16 @@ class SnippetServiceTest {
     @Test
     fun `getSnippetById returns snippet when found`() {
         val snippetId = UUID.randomUUID()
-        val snippet = Snippet(
-            name = "found", description = "d", language = "l",
-            code = "c", isPublic = false, user = User(email = "user@example.com")
-        ).also { it.id = snippetId; it.createdAt = Instant.now() }
+        val snippet =
+            Snippet(
+                name = "found",
+                description = "d",
+                isPublic = false,
+                user = User(email = "user@example.com"),
+            ).also {
+                it.id = snippetId
+                it.createdAt = Instant.now()
+            }
 
         whenever(snippetRepository.findByIdAndUserEmail(snippetId, "user@example.com"))
             .thenReturn(Optional.of(snippet))
@@ -313,10 +439,16 @@ class SnippetServiceTest {
     @Test
     fun `searchSnippets delegates to globalSearch when query provided`() {
         val user = User(email = "user@example.com").also { it.id = UUID.randomUUID() }
-        val snippet = Snippet(
-            name = "found", description = "", language = "",
-            code = "", isPublic = false, user = user
-        ).also { it.id = UUID.randomUUID(); it.createdAt = Instant.now() }
+        val snippet =
+            Snippet(
+                name = "found",
+                description = "",
+                isPublic = false,
+                user = user,
+            ).also {
+                it.id = UUID.randomUUID()
+                it.createdAt = Instant.now()
+            }
         val pageable = Pageable.ofSize(10)
         val page: Page<Snippet> = PageImpl(listOf(snippet))
 
@@ -333,10 +465,16 @@ class SnippetServiceTest {
     @Test
     fun `getPublic returns snippet when public`() {
         val snippetId = UUID.randomUUID()
-        val snippet = Snippet(
-            name = "public snippet", description = "", language = "",
-            code = "", isPublic = true, user = User(email = "user@example.com")
-        ).also { it.id = snippetId; it.createdAt = Instant.now() }
+        val snippet =
+            Snippet(
+                name = "public snippet",
+                description = "",
+                isPublic = true,
+                user = User(email = "user@example.com"),
+            ).also {
+                it.id = snippetId
+                it.createdAt = Instant.now()
+            }
 
         whenever(snippetRepository.findById(snippetId)).thenReturn(Optional.of(snippet))
 
@@ -348,10 +486,16 @@ class SnippetServiceTest {
     @Test
     fun `getPublic throws when snippet not public`() {
         val snippetId = UUID.randomUUID()
-        val snippet = Snippet(
-            name = "private", description = "", language = "",
-            code = "", isPublic = false, user = User(email = "user@example.com")
-        ).also { it.id = snippetId; it.createdAt = Instant.now() }
+        val snippet =
+            Snippet(
+                name = "private",
+                description = "",
+                isPublic = false,
+                user = User(email = "user@example.com"),
+            ).also {
+                it.id = snippetId
+                it.createdAt = Instant.now()
+            }
 
         whenever(snippetRepository.findById(snippetId)).thenReturn(Optional.of(snippet))
 

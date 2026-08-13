@@ -10,5 +10,7 @@
     <include file="db/changelog/1.0/2026-06-13--0003-tag.xml" />
     <include file="db/changelog/1.0/2026-06-13--0004-tag-snippet.xml" />
     <include file="db/changelog/1.0/2026-07-01--0005-refresh-token.xml" />
+    <include file="db/changelog/1.0/2026-08-12--0006-snippet-file.xml" />
+    <include file="db/changelog/1.0/2026-08-12--0007-migrate-snippets-to-files.xml"/>
 
 </databaseChangeLog>

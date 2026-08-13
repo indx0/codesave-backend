@@ -9,32 +9,28 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
-import java.time.Instant
+import jakarta.persistence.UniqueConstraint
 import java.util.UUID
 
 @Entity
-@Table(name = "refresh_token")
-class RefreshToken(
+@Table(
+    name = "snippet_file",
+    uniqueConstraints = [
+        UniqueConstraint(name = "idx_snippet_file_unique_filename", columnNames = ["snippet_id", "filename"]),
+    ],
+)
+class SnippetFile(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     var id: UUID? = null,
 
-    @Column(nullable = false, unique = true, name = "token_hash")
-    var tokenHash: String,
-
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    var user: User,
+    @JoinColumn(name = "snippet_id", nullable = false)
+    var snippet: Snippet,
 
-    @Column(nullable = false, name = "expires_at")
-    var expiresAt: Instant,
+    @Column(nullable = false, length = 256)
+    var filename: String,
 
-    @Column(nullable = false, name = "created_at")
-    var createdAt: Instant,
-
-    @Column(nullable = false)
-    var revoked: Boolean = false,
-
-    @Column(name = "revoked_at")
-    var revokedAt: Instant? = null,
+    @Column(nullable = false, columnDefinition = "text")
+    var code: String,
 )

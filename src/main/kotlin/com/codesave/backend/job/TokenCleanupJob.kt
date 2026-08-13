@@ -8,7 +8,9 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 @Component
-class TokenCleanupJob(private final val refreshTokenRepository: RefreshTokenRepository) {
+class TokenCleanupJob(
+    private final val refreshTokenRepository: RefreshTokenRepository,
+) {
     @Scheduled(cron = "0 0 0 * * *")
     @Transactional
     fun cleanupTokens() {

@@ -31,7 +31,6 @@ import java.util.UUID
 
 @ExtendWith(MockitoExtension::class)
 class UserServiceTest {
-
     @Mock
     private lateinit var userRepository: UserRepository
 
@@ -51,21 +50,26 @@ class UserServiceTest {
 
     @BeforeEach
     fun setUp() {
-        userService = UserServiceImpl(
-            userRepository, refreshTokenRepository,
-            refreshTokenProvider, jwtTokenProvider, passwordEncoder
-        )
+        userService =
+            UserServiceImpl(
+                userRepository,
+                refreshTokenRepository,
+                refreshTokenProvider,
+                jwtTokenProvider,
+                passwordEncoder,
+            )
     }
 
     // ---------- register ----------
 
     @Test
     fun `register persists new user when email not taken`() {
-        val dto = UserRegisterRequest(
-            email = "new@example.com",
-            name = "New User",
-            password = "plaintext-pw"
-        )
+        val dto =
+            UserRegisterRequest(
+                email = "new@example.com",
+                name = "New User",
+                password = "plaintext-pw",
+            )
 
         whenever(userRepository.existsByEmail("new@example.com")).thenReturn(false)
         whenever(passwordEncoder.encode(any<CharSequence>())).thenReturn("encoded-password")
@@ -89,11 +93,12 @@ class UserServiceTest {
 
     @Test
     fun `register throws when user already exists`() {
-        val dto = UserRegisterRequest(
-            email = "taken@example.com",
-            name = "Someone",
-            password = "pw"
-        )
+        val dto =
+            UserRegisterRequest(
+                email = "taken@example.com",
+                name = "Someone",
+                password = "pw",
+            )
 
         whenever(userRepository.existsByEmail("taken@example.com")).thenReturn(true)
 
@@ -108,8 +113,9 @@ class UserServiceTest {
     @Test
     fun `login returns tokens when credentials valid`() {
         val rawPassword = "correct-password"
-        val user = User(email = "user@example.com", passwordHash = "encoded-password")
-            .also { it.id = UUID.randomUUID() }
+        val user =
+            User(email = "user@example.com", passwordHash = "encoded-password")
+                .also { it.id = UUID.randomUUID() }
 
         val dto = LoginRequest(email = "user@example.com", password = rawPassword)
 
@@ -120,7 +126,8 @@ class UserServiceTest {
         whenever(jwtTokenProvider.generateAccessToken(user)).thenReturn("access-token")
         whenever(refreshTokenRepository.save(any<RefreshToken>())).thenAnswer { inv ->
             val t = inv.getArgument<RefreshToken>(0)
-            t.id = UUID.randomUUID(); t
+            t.id = UUID.randomUUID()
+            t
         }
 
         val result = userService.login(dto)
@@ -144,8 +151,9 @@ class UserServiceTest {
 
     @Test
     fun `login throws when password wrong`() {
-        val user = User(email = "user@example.com", passwordHash = "encoded-real-pw")
-            .also { it.id = UUID.randomUUID() }
+        val user =
+            User(email = "user@example.com", passwordHash = "encoded-real-pw")
+                .also { it.id = UUID.randomUUID() }
         val dto = LoginRequest(email = "user@example.com", password = "wrong-password")
 
         whenever(userRepository.findByEmail("user@example.com")).thenReturn(user)
@@ -161,8 +169,9 @@ class UserServiceTest {
 
     @Test
     fun `getUserByEmail returns user when found`() {
-        val user = User(email = "found@example.com", name = "Found")
-            .also { it.id = UUID.randomUUID() }
+        val user =
+            User(email = "found@example.com", name = "Found")
+                .also { it.id = UUID.randomUUID() }
 
         whenever(userRepository.findByEmail("found@example.com")).thenReturn(user)
 
@@ -187,13 +196,14 @@ class UserServiceTest {
     fun `refresh rotates token when valid`() {
         val user = User(email = "user@example.com").also { it.id = UUID.randomUUID() }
 
-        val existing = RefreshToken(
-            tokenHash = "old-hashed-token",
-            user = user,
-            expiresAt = Instant.now().plus(1, ChronoUnit.DAYS),
-            createdAt = Instant.now(),
-            revoked = false
-        ).also { it.id = UUID.randomUUID() }
+        val existing =
+            RefreshToken(
+                tokenHash = "old-hashed-token",
+                user = user,
+                expiresAt = Instant.now().plus(1, ChronoUnit.DAYS),
+                createdAt = Instant.now(),
+                revoked = false,
+            ).also { it.id = UUID.randomUUID() }
 
         val dto = RefreshRequest(refreshToken = "old-raw-token")
 
@@ -204,7 +214,8 @@ class UserServiceTest {
         whenever(jwtTokenProvider.generateAccessToken(user)).thenReturn("new-access-token")
         whenever(refreshTokenRepository.save(any<RefreshToken>())).thenAnswer { inv ->
             val t = inv.getArgument<RefreshToken>(0)
-            t.id = UUID.randomUUID(); t
+            t.id = UUID.randomUUID()
+            t
         }
 
         val result = userService.refresh(dto)
@@ -233,11 +244,14 @@ class UserServiceTest {
 
     @Test
     fun `refresh throws when token already revoked`() {
-        val existing = RefreshToken(
-            tokenHash = "reused-hash", user = User(),
-            expiresAt = Instant.now().plus(1, ChronoUnit.DAYS),
-            createdAt = Instant.now(), revoked = true
-        ).also { it.id = UUID.randomUUID() }
+        val existing =
+            RefreshToken(
+                tokenHash = "reused-hash",
+                user = User(),
+                expiresAt = Instant.now().plus(1, ChronoUnit.DAYS),
+                createdAt = Instant.now(),
+                revoked = true,
+            ).also { it.id = UUID.randomUUID() }
 
         val dto = RefreshRequest(refreshToken = "reused-token")
 
@@ -251,11 +265,14 @@ class UserServiceTest {
 
     @Test
     fun `refresh throws when token expired`() {
-        val existing = RefreshToken(
-            tokenHash = "expired-hash", user = User(),
-            expiresAt = Instant.now().minus(1, ChronoUnit.DAYS),
-            createdAt = Instant.now(), revoked = false
-        ).also { it.id = UUID.randomUUID() }
+        val existing =
+            RefreshToken(
+                tokenHash = "expired-hash",
+                user = User(),
+                expiresAt = Instant.now().minus(1, ChronoUnit.DAYS),
+                createdAt = Instant.now(),
+                revoked = false,
+            ).also { it.id = UUID.randomUUID() }
 
         val dto = RefreshRequest(refreshToken = "expired-token")
 
@@ -271,11 +288,14 @@ class UserServiceTest {
 
     @Test
     fun `logout deletes token when valid`() {
-        val existing = RefreshToken(
-            tokenHash = "valid-hash", user = User(),
-            expiresAt = Instant.now().plus(1, ChronoUnit.DAYS),
-            createdAt = Instant.now(), revoked = false
-        ).also { it.id = UUID.randomUUID() }
+        val existing =
+            RefreshToken(
+                tokenHash = "valid-hash",
+                user = User(),
+                expiresAt = Instant.now().plus(1, ChronoUnit.DAYS),
+                createdAt = Instant.now(),
+                revoked = false,
+            ).also { it.id = UUID.randomUUID() }
 
         val dto = LogoutRequest(refreshToken = "valid-token")
 
@@ -302,11 +322,14 @@ class UserServiceTest {
 
     @Test
     fun `logout throws when token already revoked`() {
-        val existing = RefreshToken(
-            tokenHash = "revoked-hash", user = User(),
-            expiresAt = Instant.now().plus(1, ChronoUnit.DAYS),
-            createdAt = Instant.now(), revoked = true
-        ).also { it.id = UUID.randomUUID() }
+        val existing =
+            RefreshToken(
+                tokenHash = "revoked-hash",
+                user = User(),
+                expiresAt = Instant.now().plus(1, ChronoUnit.DAYS),
+                createdAt = Instant.now(),
+                revoked = true,
+            ).also { it.id = UUID.randomUUID() }
 
         val dto = LogoutRequest(refreshToken = "revoked-token")
 
@@ -321,11 +344,14 @@ class UserServiceTest {
 
     @Test
     fun `logout throws when token expired`() {
-        val existing = RefreshToken(
-            tokenHash = "expired-hash", user = User(),
-            expiresAt = Instant.now().minus(1, ChronoUnit.DAYS),
-            createdAt = Instant.now(), revoked = false
-        ).also { it.id = UUID.randomUUID() }
+        val existing =
+            RefreshToken(
+                tokenHash = "expired-hash",
+                user = User(),
+                expiresAt = Instant.now().minus(1, ChronoUnit.DAYS),
+                createdAt = Instant.now(),
+                revoked = false,
+            ).also { it.id = UUID.randomUUID() }
 
         val dto = LogoutRequest(refreshToken = "expired-token")
 

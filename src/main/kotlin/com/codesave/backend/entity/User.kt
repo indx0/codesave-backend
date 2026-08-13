@@ -25,10 +25,11 @@ class User(
     var email: String = "",
 
     @Column(nullable = false, name = "password", length = 256)
-    var passwordHash: String? = ""
+    var passwordHash: String? = "",
 ) : UserDetails {
     override fun getPassword(): String? = passwordHash
+
     override fun getAuthorities(): Collection<GrantedAuthority> = listOf(SimpleGrantedAuthority("USER"))
+
     override fun getUsername(): String = email
 }
-
