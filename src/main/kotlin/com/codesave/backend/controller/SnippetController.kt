@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.data.domain.Page
@@ -72,6 +73,7 @@ class SnippetController(
         description = "Public snippet found",
         content = [Content(schema = Schema(implementation = SnippetResponse::class))],
     )
+    @SecurityRequirements()
     @ApiResponse(responseCode = "404", description = "Snippet not found or not public")
     fun getByIdPublic(
         @PathVariable @Parameter(description = "Snippet UUID") id: UUID,

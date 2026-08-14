@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -36,6 +37,7 @@ class UserController(
         content = [Content(schema = Schema(implementation = UserResponse::class))],
     )
     @ApiResponse(responseCode = "409", description = "User already exists")
+    @SecurityRequirements()
     fun register(
         @Valid @RequestBody dto: UserRegisterRequest,
     ): UserResponse = userService.register(dto)
@@ -48,6 +50,7 @@ class UserController(
         content = [Content(schema = Schema(implementation = TokenResponse::class))],
     )
     @ApiResponse(responseCode = "401", description = "Invalid email or password")
+    @SecurityRequirements()
     fun login(
         @Valid @RequestBody dto: LoginRequest,
     ): TokenResponse = userService.login(dto)
@@ -59,6 +62,7 @@ class UserController(
         description = "Token refreshed",
         content = [Content(schema = Schema(implementation = TokenResponse::class))],
     )
+    @SecurityRequirements()
     @ApiResponse(responseCode = "401", description = "Invalid, expired, or revoked refresh token")
     fun refresh(
         @Valid @RequestBody dto: RefreshRequest,
@@ -68,6 +72,7 @@ class UserController(
     @Operation(summary = "Logout", description = "Revokes the refresh token")
     @ApiResponse(responseCode = "204", description = "Logged out successfully")
     @ApiResponse(responseCode = "401", description = "Invalid refresh token")
+    @SecurityRequirements()
     fun logout(
         @Valid @RequestBody dto: LogoutRequest,
     ): ResponseEntity<Unit> {
