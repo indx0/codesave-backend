@@ -48,7 +48,7 @@ class Snippet(
         inverseJoinColumns = [JoinColumn(name = "tag_id")],
     )
     @BatchSize(size = 50)
-    var tags: MutableSet<Tag> = mutableSetOf(),
+    var tags: MutableList<Tag> = mutableListOf(),
 
     @OneToMany(mappedBy = "snippet", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
     @BatchSize(size = 50)

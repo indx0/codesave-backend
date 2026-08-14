@@ -46,7 +46,7 @@ class SnippetServiceImpl(
                 user = user,
             ).apply {
                 if (!dto.tagIds.isNullOrEmpty()) {
-                    tags = tagRepository.findByIdInAndUserEmail(dto.tagIds, userEmail).toMutableSet()
+                    tags = tagRepository.findByIdInAndUserEmail(dto.tagIds, userEmail).toMutableList()
                 }
                 if (!dto.files.isNullOrEmpty()) {
                     dto.files.forEach { file ->
@@ -115,7 +115,7 @@ class SnippetServiceImpl(
             if (tags.size != dto.tagIds.size) {
                 throw IllegalArgumentException("One or more tags not found")
             }
-            snippet.tags = tags.toMutableSet()
+            snippet.tags = tags.toMutableList()
         }
         if(dto.files != null) {
             snippet.files.clear()

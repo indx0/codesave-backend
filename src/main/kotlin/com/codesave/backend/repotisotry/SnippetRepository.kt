@@ -11,7 +11,6 @@ import java.util.Optional
 import java.util.UUID
 
 interface SnippetRepository : JpaRepository<Snippet, UUID> {
-    @EntityGraph(attributePaths = ["tags", "files"])
     fun findAllByUserEmail(
         email: String,
         pageable: Pageable,
