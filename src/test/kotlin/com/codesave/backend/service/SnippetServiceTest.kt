@@ -1,15 +1,15 @@
 package com.codesave.backend.service
 
-import com.codesave.backend.dto.file.FileCreateNestedRequest
-import com.codesave.backend.dto.snippet.SnippetCreateRequest
-import com.codesave.backend.entity.Snippet
-import com.codesave.backend.entity.Tag
-import com.codesave.backend.entity.User
-import com.codesave.backend.exception.SnippetNotFoundException
-import com.codesave.backend.repotisotry.SnippetRepository
-import com.codesave.backend.repotisotry.TagRepository
-import com.codesave.backend.repotisotry.UserRepository
-import com.codesave.backend.service.impl.SnippetServiceImpl
+import com.codesave.backend.snippet.dto.FileCreateNestedRequest
+import com.codesave.backend.snippet.dto.SnippetCreateRequest
+import com.codesave.backend.snippet.Snippet
+import com.codesave.backend.tag.Tag
+import com.codesave.backend.user.User
+import com.codesave.backend.snippet.SnippetNotFoundException
+import com.codesave.backend.snippet.SnippetRepository
+import com.codesave.backend.tag.TagRepository
+import com.codesave.backend.user.UserRepository
+import com.codesave.backend.snippet.SnippetServiceImpl
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

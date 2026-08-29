@@ -1,16 +1,16 @@
 package com.codesave.backend.service
 
-import com.codesave.backend.dto.user.LoginRequest
-import com.codesave.backend.dto.user.LogoutRequest
-import com.codesave.backend.dto.user.RefreshRequest
-import com.codesave.backend.dto.user.UserRegisterRequest
-import com.codesave.backend.entity.RefreshToken
-import com.codesave.backend.entity.User
-import com.codesave.backend.exception.UserExistsException
-import com.codesave.backend.repotisotry.RefreshTokenRepository
-import com.codesave.backend.repotisotry.UserRepository
-import com.codesave.backend.security.JwtTokenProvider
-import com.codesave.backend.service.impl.UserServiceImpl
+import com.codesave.backend.user.dto.LoginRequest
+import com.codesave.backend.user.dto.LogoutRequest
+import com.codesave.backend.user.dto.RefreshRequest
+import com.codesave.backend.user.dto.UserRegisterRequest
+import com.codesave.backend.auth.RefreshToken
+import com.codesave.backend.user.User
+import com.codesave.backend.user.UserExistsException
+import com.codesave.backend.auth.RefreshTokenRepository
+import com.codesave.backend.user.UserRepository
+import com.codesave.backend.auth.JwtTokenProvider
+import com.codesave.backend.user.UserServiceImpl
 import org.codesave.backend.exception.InvalidRefreshTokenException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
